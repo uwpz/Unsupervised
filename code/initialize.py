@@ -1114,8 +1114,10 @@ def calc_partial_dependence(df, fit, df_ref, tr_spm = None,
     if tr_spm is None:
         tr_spm = CreateSparseMatrix(metr = metr, cate = cate, df_ref = df_ref).fit()
     else:
-        metr = tr_spm.metr
-        cate = tr_spm.cate
+        if metr is not None:
+            metr = tr_spm.metr
+        if cate is not None:
+            cate = tr_spm.cate
 
     # Quantile and and values calculation
     d_quantiles = df[metr].quantile(quantiles).to_dict(orient = "list")

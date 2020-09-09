@@ -8,6 +8,7 @@ from initialize import *
 
 # Specific libraries
 from sklearn.model_selection import cross_validate
+from sklearn.decomposition import PCA
 
 # Main parameter
 TARGET_TYPE = "CLASS"
@@ -150,4 +151,18 @@ plot_variable_importance(df_varimp, mask = df_varimp["feature"].isin(topn_featur
 #plt.close("all")
 
 
+# ######################################################################################################################
+# PCA
+# ######################################################################################################################
 
+n_components = 27
+whiten = False
+random_state = 2018
+pca = PCA(n_components=n_components, whiten=whiten, random_state=random_state)
+X_train_pca = pca.fit_transform(df_train[metr].values)
+
+
+X_test_PCA = pca.transform(X_test)
+X_test_PCA = pd.DataFrame(data=X_test_PCA, index=X_test.index)
+
+X_test_PCA_inverse = pca.inverse_transform(X_test_PCA)
