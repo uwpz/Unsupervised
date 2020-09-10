@@ -69,7 +69,7 @@ df["id"] = np.arange(len(df)) + 1
 
 # --- Define metric covariates -------------------------------------------------------------------------------------
 
-metr = np.array(["V" + str(x) for x in (np.arange(28) + 1)]).astype(object)
+metr = np.array(["Time", "Amount"] + ["V" + str(x) for x in (np.arange(28) + 1)]).astype(object)
 df[metr].describe()
 
 

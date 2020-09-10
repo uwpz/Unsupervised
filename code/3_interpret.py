@@ -82,7 +82,8 @@ df_traintest = pd.concat([df_train, df_test]).reset_index(drop = True)
 
 # Folds for crossvalidation and check
 split_my5fold = TrainTestSep(5, "cv")
-for i_train, i_test in split_my5fold.split(df_traintest):
+split_5fold = KFold(5, shuffle=True, random_state=42)
+for i_train, i_test in split_5fold.split(df_traintest):
     print("TRAIN-fold:", df_traintest["fold"].iloc[i_train].value_counts())
     print("TEST-fold:", df_traintest["fold"].iloc[i_test].value_counts())
     print("##########")
@@ -121,7 +122,7 @@ plot_all_performances(df_test["target"], yhat_test, target_labels = target_label
 
 # --- Check performance for crossvalidated fits ---------------------------------------------------------------------
 d_cv = cross_validate(clf, tr_spm.transform(df_traintest), df_traintest["target"],
-                      cv = split_my5fold.split(df_traintest),  # special 5fold
+                      cv = split_5fold.split(df_traintest),  # special 5fold
                       scoring = d_scoring[TARGET_TYPE],
                       return_estimator = True,
                       n_jobs = 4)
@@ -156,13 +157,15 @@ plot_variable_importance(df_varimp, mask = df_varimp["feature"].isin(topn_featur
 # ######################################################################################################################
 
 n_components = 27
-whiten = False
-random_state = 2018
-pca = PCA(n_components=n_components, whiten=whiten, random_state=random_state)
+pca = PCA(n_components=n_components, whiten=False, random_state=12345)
 X_train_pca = pca.fit_transform(df_train[metr].values)
+X_test_rec = pca.inverse_transform(pca.transform(df_test[metr].values))
 
+score = np.sum(np.square(X_test_rec - X_test), axis = 1).A1
+score = (score-np.min(score)) / (np.max(score)-np.min(score))
+yhat_pca = np.column_stack((1-score, score))
+pd.DataFrame(yhat_pca).describe()
 
-X_test_PCA = pca.transform(X_test)
-X_test_PCA = pd.DataFrame(data=X_test_PCA, index=X_test.index)
-
-X_test_PCA_inverse = pca.inverse_transform(X_test_PCA)
+plot_all_performances(df_test["target"], yhat_pca, target_labels = target_labels, target_type = TARGET_TYPE,
+                      color = color, ylim = None,
+                      pdf = plotloc + "pca_performance.pdf")
